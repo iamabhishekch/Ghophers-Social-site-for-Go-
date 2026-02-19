@@ -22,7 +22,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	// to push data in db we need store.Post (to fill all details)
 	var payload CreatePostPaylaod
 	if err := readJson(w, r, &payload); err != nil {
-		writeJSONEroor(w, http.StatusBadRequest, err.Error())
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -38,13 +38,13 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 
 	// data push
 	if err := app.store.Posts.Create(ctx, post); err != nil {
-		writeJSONEroor(w, http.StatusInternalServerError, err.Error())
+		app.internalServerError(w,r, err)
 		return
 	}
 	// sending back to user
 
 	if err := writeJson(w, http.StatusOK, post); err != nil {
-		writeJSONEroor(w, http.StatusInternalServerError, err.Error())
+		app.internalServerError(w,r, err)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	// converting string val to int64
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		writeJSONEroor(w, http.StatusInternalServerError, err.Error())
+		app.internalServerError(w,r, err)
 		return
 	}
 
@@ -69,15 +69,15 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 		// switching based on the error if not found 400, server error 500, or others
 		switch {
 		case errors.Is(err, store.ErrNotFound):
-			writeJSONEroor(w, http.StatusNotFound, err.Error())
+			app.notFoundResponse(w, r, err)
 		default:
-			writeJSONEroor(w, http.StatusInternalServerError, err.Error())
+			app.internalServerError(w,r, err)
 		}
 		return
 	}
 	// returning to user
 	if err := writeJson(w, http.StatusCreated, post); err != nil {
-		writeJSONEroor(w, http.StatusInternalServerError, err.Error())
+		app.internalServerError(w,r, err)
 		return
 	}
 	
