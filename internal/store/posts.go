@@ -15,6 +15,7 @@ type Post struct {
 	Tags      []string `json:"tags"`
 	CreatedAt string   `json:"createdat"`
 	UpdatedAt string   `json:"updatedat"`
+	// first_name and last_name can be added
 }
 
 type PostStore struct {
