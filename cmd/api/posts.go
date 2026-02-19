@@ -1,8 +1,11 @@
 package main
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/iamabhishekch/Social/internal/store"
 )
 
@@ -44,5 +47,39 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		writeJSONEroor(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+}
+
+// getPostHandler will return post by ID
+func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
+
+	// parsing id
+	idParam := chi.URLParam(r, "postID")
+	// converting string val to int64
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		writeJSONEroor(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// db layer
+	ctx := r.Context()
+	post, err := app.store.Posts.GetByID(ctx, id)
+	if err != nil {
+		// switching based on the error if not found 400, server error 500, or others
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			writeJSONEroor(w, http.StatusNotFound, err.Error())
+		default:
+			writeJSONEroor(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	// returning to user
+	if err := writeJson(w, http.StatusCreated, post); err != nil {
+		writeJSONEroor(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	
 
 }
