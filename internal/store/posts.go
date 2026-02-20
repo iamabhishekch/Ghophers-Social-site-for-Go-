@@ -9,13 +9,14 @@ import (
 )
 
 type Post struct {
-	ID        int64    `json:"id"`
-	Content   string   `json:"content"`
-	Title     string   `json:"title"`
-	UserID    int64    `json:"userid"`
-	Tags      []string `json:"tags"`
-	CreatedAt string   `json:"createdat"`
-	UpdatedAt string   `json:"updatedat"`
+	ID        int64     `json:"id"`
+	Content   string    `json:"content"`
+	Title     string    `json:"title"`
+	UserID    int64     `json:"userid"`
+	Tags      []string  `json:"tags"`
+	CreatedAt string    `json:"createdat"`
+	UpdatedAt string    `json:"updatedat"`
+	Comment   []Comment `json:"comments"`
 	// first_name and last_name can be added
 }
 

@@ -10,10 +10,12 @@ import (
 )
 
 type CreatePostPaylaod struct {
-	Title   string   `json:"title"`
-	Content string   `json:"content"`
+	Title   string   `json:"title" validate:"required,max=100"`
+	Content string   `json:"content" validate:"required,max=100"`
 	Tags    []string `json:"tags"`
 }
+
+// createPostHandler will create new post
 
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -22,6 +24,12 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	// to push data in db we need store.Post (to fill all details)
 	var payload CreatePostPaylaod
 	if err := readJson(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	// vallidate struct
+	if err := Validate.Struct(payload); err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
@@ -38,13 +46,13 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 
 	// data push
 	if err := app.store.Posts.Create(ctx, post); err != nil {
-		app.internalServerError(w,r, err)
+		app.internalServerError(w, r, err)
 		return
 	}
 	// sending back to user
 
 	if err := writeJson(w, http.StatusOK, post); err != nil {
-		app.internalServerError(w,r, err)
+		app.internalServerError(w, r, err)
 		return
 	}
 
@@ -58,7 +66,7 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	// converting string val to int64
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		app.internalServerError(w,r, err)
+		app.internalServerError(w, r, err)
 		return
 	}
 
@@ -71,15 +79,24 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r, err)
 		default:
-			app.internalServerError(w,r, err)
+			app.internalServerError(w, r, err)
 		}
 		return
 	}
-	// returning to user
-	if err := writeJson(w, http.StatusCreated, post); err != nil {
-		app.internalServerError(w,r, err)
+
+	// fetching comments of the post
+	comments, err := app.store.Comments.GetByPostID(ctx, id)
+	if err != nil{
+		app.internalServerError(w, r, err)
 		return
 	}
-	
+
+	post.Comment =comments
+
+	// returning to user
+	if err := writeJson(w, http.StatusCreated, post); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
 
 }
