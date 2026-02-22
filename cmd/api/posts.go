@@ -58,7 +58,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 	// sending back to user
 
-	if err := writeJson(w, http.StatusOK, post); err != nil {
+	if err := app.jsonResponse(w, http.StatusOK, post); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
@@ -80,7 +80,7 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	post.Comment = comments
 
 	// returning to user
-	if err := writeJson(w, http.StatusCreated, post); err != nil {
+	if err := app.jsonResponse(w, http.StatusCreated, post); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
@@ -144,7 +144,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 		post.Title = *payload.Title
 	}
 
-	if err := writeJson(w, http.StatusOK, post); err != nil {
+	if err := app.jsonResponse(w, http.StatusOK, post); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
