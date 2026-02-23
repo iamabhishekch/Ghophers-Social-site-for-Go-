@@ -1,0 +1,2 @@
+ALTER TBALE
+posts DROP COLUMN version;
