@@ -30,9 +30,11 @@ type FollowUser struct {
 
 // follow
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
+	// will get the id of user who want to follow (from link we are getting it)
 	followerUser := getUserFromContext(r)
 
-	// revert back to auth userID from ctx
+	// TODO: revert back to auth userID from ctx
+	// we get the JSON body - target user: follow/unfollow(for unfollow we have unfollowUserHandler) 
 	var payload FollowUser
 	if err := readJson(w, r, &payload); err != nil {
 		app.badRequestResponse(w, r, err)
@@ -50,6 +52,14 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 		app.internalServerError(w, r, err)
 	}
 }
+
+/*
+* Current flow is
+* 1. Get acting user ID from URL /{userID} (via middleware/context)
+* 2. Get target user ID from request body user_id
+* 3. Insert into followers table as:
+* user_id = target user; follower_id = acting user (user who want to follow)
+*/
 
 // unfollow
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -79,6 +89,7 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 
 func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Id from param and convert it into the int
 		userID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
 		if err != nil {
 			app.badRequestResponse(w, r, err)
@@ -87,6 +98,7 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 
 		ctx := r.Context()
 
+		// fetch user by id
 		user, err := app.store.Users.GetByID(ctx, userID)
 		if err != nil {
 			switch err {
