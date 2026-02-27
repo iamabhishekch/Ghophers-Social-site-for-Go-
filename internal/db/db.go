@@ -11,16 +11,16 @@ import (
 func New(addr string, maxOpenConns, maxIdeleConns int, maxIdleTime string) (*sql.DB, error) {
 
 	// open connection
-	db, err :=sql.Open("postgres", addr)
-	if err!= nil{
-		return nil, err 
+	db, err := sql.Open("postgres", addr)
+	if err != nil {
+		return nil, err
 	}
 
 	// duration
 	db.SetMaxOpenConns(maxOpenConns)
 	db.SetMaxIdleConns(maxIdeleConns)
-	duration, err:= time.ParseDuration(maxIdleTime)
-	if err !=nil{
+	duration, err := time.ParseDuration(maxIdleTime)
+	if err != nil {
 		return nil, err
 	}
 
@@ -31,7 +31,7 @@ func New(addr string, maxOpenConns, maxIdeleConns int, maxIdleTime string) (*sql
 	defer cancel()
 
 	// ping to connection
-	if err = db.PingContext(ctx); err!=nil{
+	if err = db.PingContext(ctx); err != nil {
 		return nil, err
 	}
 

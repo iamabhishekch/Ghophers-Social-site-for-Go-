@@ -13,9 +13,23 @@ type userKey string
 
 const userCtx userKey = "user"
 
-// get the param => query to db => return result as JSON responce
-// getUserHandler will get the users
+// GetUser godoc
+//
+//	@Summary		Fetches a user profile
+//	@Description	Fetches a user profile by ID
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"User ID"
+//	@Success		200	{object}	store.User
+//	@Failure		400	{object}	error
+//	@Failure		404	{object}	error
+//	@Failure		500	{object}	error
+//	@Security		ApiKeyAuth
+//	@Router			/users/{id} [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
+	// get the param => query to db => return result as JSON response
+	// getUserHandler will get the users
 	user := getUserFromContext(r)
 
 	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
@@ -34,7 +48,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 	followerUser := getUserFromContext(r)
 
 	// TODO: revert back to auth userID from ctx
-	// we get the JSON body - target user: follow/unfollow(for unfollow we have unfollowUserHandler) 
+	// we get the JSON body - target user: follow/unfollow(for unfollow we have unfollowUserHandler)
 	var payload FollowUser
 	if err := readJson(w, r, &payload); err != nil {
 		app.badRequestResponse(w, r, err)
@@ -59,7 +73,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 * 2. Get target user ID from request body user_id
 * 3. Insert into followers table as:
 * user_id = target user; follower_id = acting user (user who want to follow)
-*/
+ */
 
 // unfollow
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {

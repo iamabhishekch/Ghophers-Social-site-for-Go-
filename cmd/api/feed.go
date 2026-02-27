@@ -19,14 +19,14 @@ func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Reques
 
 	// parsing values send by user
 	fq, err := fq.Parse(r)
-	if err != nil{
-		app.badRequestResponse(w,r,err)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
 	// validating recevied values from user
-	if err := Validate.Struct(fq); err != nil{
-		app.badRequestResponse(w,r,err)
+	if err := Validate.Struct(fq); err != nil {
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
