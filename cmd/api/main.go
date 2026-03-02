@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/iamabhishekch/Social/internal/db"
 	"github.com/iamabhishekch/Social/internal/env"
 	"github.com/iamabhishekch/Social/internal/store"
@@ -40,6 +42,9 @@ func main() {
 			maxIdelTime:  env.GetString("DB_MAX_IDLE_CONNS", "15m"),
 		},
 		env: env.GetString("ENV", "development"),
+		mail: mailConfig{
+			exp: time.Hour * 24 * 3, // 3 days
+		},
 	}
 
 	//logger
