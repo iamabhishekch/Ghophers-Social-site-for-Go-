@@ -5,6 +5,7 @@ import (
 
 	"github.com/iamabhishekch/Social/internal/db"
 	"github.com/iamabhishekch/Social/internal/env"
+	"github.com/iamabhishekch/Social/internal/mailer"
 	"github.com/iamabhishekch/Social/internal/store"
 	"go.uber.org/zap"
 )
@@ -35,6 +36,7 @@ func main() {
 	cfg := config{
 		addr:   env.GetString("ADDR", ":8080"),
 		apiURL: env.GetString("EXTERNAL_URL", "localhost:8080"),
+		frontendURL : env.GetString("FRONTEND_URL", "http://localhost:4000"),
 		db: dbConfig{
 			addr:         env.GetString("DB_ADDR", "postgres://admin:admin@localhost:5433/social?sslmode=disable"),
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
@@ -43,7 +45,11 @@ func main() {
 		},
 		env: env.GetString("ENV", "development"),
 		mail: mailConfig{
-			exp: time.Hour * 24 * 3, // 3 days
+			exp:       time.Hour * 24 * 3, // 3 days
+			fromEmail: env.GetString("SENDGRID_FROM_EMAIL", ""),
+			sendGrid: sendGridConfig{
+				apiKey: env.GetString("SENDGRID_API_KEY", ""),
+			},
 		},
 	}
 
@@ -66,6 +72,9 @@ func main() {
 	defer db.Close()
 	logger.Info("DB connection established")
 
+	//mailer
+	mailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+
 	// intilizing struct store
 	store := store.NewStorage(db)
 
@@ -74,6 +83,7 @@ func main() {
 		config: cfg,
 		store:  store,
 		logger: logger,
+		mailer: mailer,
 	}
 
 	mux := app.mount()
