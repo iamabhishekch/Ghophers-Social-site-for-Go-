@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/iamabhishekch/Social/internal/auth"
 	"github.com/iamabhishekch/Social/internal/db"
 	"github.com/iamabhishekch/Social/internal/env"
 	"github.com/iamabhishekch/Social/internal/mailer"
@@ -34,9 +35,9 @@ func main() {
 
 	// intilizing struct config
 	cfg := config{
-		addr:   env.GetString("ADDR", ":8080"),
-		apiURL: env.GetString("EXTERNAL_URL", "localhost:8080"),
-		frontendURL : env.GetString("FRONTEND_URL", "http://localhost:4000"),
+		addr:        env.GetString("ADDR", ":8080"),
+		apiURL:      env.GetString("EXTERNAL_URL", "localhost:8080"),
+		frontendURL: env.GetString("FRONTEND_URL", "http://localhost:4000"),
 		db: dbConfig{
 			addr:         env.GetString("DB_ADDR", "postgres://admin:admin@localhost:5433/social?sslmode=disable"),
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
@@ -49,6 +50,17 @@ func main() {
 			fromEmail: env.GetString("SENDGRID_FROM_EMAIL", ""),
 			sendGrid: sendGridConfig{
 				apiKey: env.GetString("SENDGRID_API_KEY", ""),
+			},
+		},
+		auth: authConfig{
+			basic: basicConfig{
+				user: env.GetString("AUTH_BASIC_USER", "admin"),
+				pass: env.GetString("AUTH_BASIC_PASS", "admin"),
+			},
+			token: tokenCofig{
+				secret: env.GetString("AUTH_TOKEN_SECRET", "example"),
+				exp:    time.Hour * 24 * 3, // 3 days
+				iss:    "gophersocial",
 			},
 		},
 	}
@@ -78,12 +90,16 @@ func main() {
 	// intilizing struct store
 	store := store.NewStorage(db)
 
+	//auth
+	JWTAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
+
 	// ** intilizing struct application **
 	app := &application{
-		config: cfg,
-		store:  store,
-		logger: logger,
-		mailer: mailer,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		mailer:        mailer,
+		authenticator: JWTAuthenticator,
 	}
 
 	mux := app.mount()
