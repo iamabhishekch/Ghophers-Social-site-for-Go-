@@ -105,11 +105,12 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	err = app.mailer.Send(mailer.UserWelcomeTemplates, user.Username, user.Email, vars, !isProdEnv)
 	if err != nil {
 		app.logger.Errorw("error sending welcome email", "error", err)
-	}
 
-	// rollback user creation if email fails (SAGA pattern)
-	if err := app.store.Users.Delete(ctx, user.ID); err != nil {
-		app.logger.Errorw("error deleting user", "error", err)
+		// rollback user creation if email fails (SAGA pattern)
+		if err := app.store.Users.Delete(ctx, user.ID); err != nil {
+			app.logger.Errorw("error deleting user", "error", err)
+		}
+
 	}
 
 	if err := app.jsonResponse(w, http.StatusCreated, UserWithToken); err != nil {
