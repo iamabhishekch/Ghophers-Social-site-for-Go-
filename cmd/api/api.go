@@ -15,6 +15,7 @@ import (
 	"github.com/iamabhishekch/Social/docs"
 	"github.com/iamabhishekch/Social/internal/auth"
 	"github.com/iamabhishekch/Social/internal/mailer"
+	"github.com/iamabhishekch/Social/internal/ratelimiter"
 	"github.com/iamabhishekch/Social/internal/store"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
@@ -26,6 +27,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	rateLimiter   ratelimiter.Limiter
 }
 
 type config struct {
@@ -36,6 +38,7 @@ type config struct {
 	mail        mailConfig
 	frontendURL string
 	auth        authConfig
+	rateLimiter ratelimiter.Config
 }
 
 type authConfig struct {
@@ -77,6 +80,8 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	// implementing rate limiter for all (can also be implemented on individual)
+	r.Use(app.RateLimiterMiddleware)
 
 	// Set a timeout value on the request context (ctx), that will signal
 	// through ctx.Done() that the request has timed out and further
